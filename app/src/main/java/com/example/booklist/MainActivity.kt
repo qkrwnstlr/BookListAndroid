@@ -12,26 +12,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.booklist.ui.common.ImageSlider
 import com.example.booklist.ui.theme.BookListTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 
 class MainActivity : ComponentActivity() {
-  @OptIn(ExperimentalMaterial3Api::class, ExperimentalPagerApi::class)
+  @OptIn(ExperimentalMaterial3Api::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    val sliderList = mutableListOf<String>()
+    for (i in 0..10) sliderList.add("https://random.imagecdn.app/1240/1880")
     setContent {
       BookListTheme {
         Scaffold {
-          HorizontalPager(count = 10, modifier = Modifier.padding(it)) { page ->
-            // Our page content
-            Text(
-              text = "Page: $page",
-              modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-            )
-          }
+          ImageSlider(modifier = Modifier.padding(it), sliderList = sliderList)
         }
       }
     }
