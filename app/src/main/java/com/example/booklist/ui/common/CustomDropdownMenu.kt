@@ -6,10 +6,15 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ModifierInfo
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 
@@ -18,10 +23,16 @@ fun <T> CustomTextDropdownMenu(
   controller: CustomDropdownMenuController<T>,
   modifier: Modifier = Modifier
 ) {
-  Row(modifier = modifier
-    .fillMaxWidth()
-    .height(ButtonDefaults.MinHeight)) {
-    Text(controller.currentValue.toString(), modifier = Modifier.weight(1f))
+  Row(
+    modifier = modifier
+      .height(ButtonDefaults.MinHeight), verticalAlignment = Alignment.CenterVertically
+  ) {
+    Text(
+      controller.currentValue.toString(),
+      fontWeight = FontWeight.Bold,
+      modifier = Modifier.weight(1f),
+      textAlign = TextAlign.Center
+    )
     Box {
       IconButton(onClick = controller::onShowRequest) {
         Icon(
@@ -63,10 +74,11 @@ fun <T> CustomDropdownMenu(
 }
 
 class CustomDropdownMenuController<T>(
-  var expanded: Boolean,
-  var currentValue: T,
+  var initvalue: T,
   var dropdownMenuItemList: List<T>
 ) {
+  var expanded by mutableStateOf<Boolean>(false)
+  var currentValue by mutableStateOf<T>(initvalue)
   fun onShowRequest() {
     expanded = true
   }

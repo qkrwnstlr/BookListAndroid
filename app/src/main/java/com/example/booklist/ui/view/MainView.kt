@@ -69,7 +69,7 @@ fun MainView(modifier: Modifier = Modifier) {
             width = Dimension.fillToConstraints
             centerHorizontallyTo(parent)
             top.linkTo(parent.top)
-          }
+          }.padding(horizontal = 10.dp)
         )
         SearchLayout(
           modifier = Modifier.constrainAs(searchLayout) {
@@ -123,6 +123,7 @@ fun SearchLayout(modifier: Modifier = Modifier) {
     )
     LazyColumn { // 임마는 왜 자꾸 호출됨...?
       items(items = viewModel.searchList) { bookEntity ->
+        println("MainView : SearchLayout ${bookEntity.id}, ${bookEntity.title}, ${bookEntity.country}")
         ListItem(
           bookEntity,
           viewModel.isCheckedList[bookEntity] ?: false,
@@ -144,8 +145,9 @@ fun SearchHead(
   modifier: Modifier = Modifier
 ) {
   Column(
-    modifier = modifier,
-    horizontalAlignment = Alignment.CenterHorizontally
+    modifier = modifier.padding(horizontal = 10.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(10.dp)
   ) {
     CustomTextField(titleFieldController) {
       Icon(Icons.Rounded.Title, "Title Icon")
@@ -154,12 +156,12 @@ fun SearchHead(
       Icon(Icons.Rounded.Person, "Person Icon")
     }
     Row(
-      horizontalArrangement = Arrangement.SpaceBetween,
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
       modifier = modifier,
       verticalAlignment = Alignment.CenterVertically
     ) {
-      CustomTextDropdownMenu(countryDropdownMenuController)
-      CustomTextDropdownMenu(genreDropdownMenuController)
+      CustomTextDropdownMenu(countryDropdownMenuController, Modifier.weight(1f))
+      CustomTextDropdownMenu(genreDropdownMenuController, Modifier.weight(1f))
       IconButton(
         onClick = onSearchButtonClicked,
         modifier = Modifier
@@ -207,6 +209,45 @@ fun SearchTop(
 }
 
 @Composable
+fun ListItem(
+  bookEntity: BookEntity,
+  isChecked: Boolean,
+  checkBoxListController: CheckBoxListController<BookEntity>,
+  onEditButtonClick: (BookEntity) -> Unit,
+  modifier: Modifier = Modifier
+) {
+  println("MainView : ListItem ${bookEntity.id}, ${bookEntity.title}")
+  Row(
+    horizontalArrangement = Arrangement.SpaceBetween,
+    modifier = modifier.fillMaxSize(),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Checkbox(
+      checked = isChecked,
+      onCheckedChange = { checkBoxListController.onCheckedChange(bookEntity) },
+    )
+    Text(
+      text = bookEntity.title,
+      /*
+      FIXME : TextDecoration이 처음에 None이 아닌 다른 것으로 설정된 후에는 정상적으로 바뀌지 않는 버그
+      None에서 시작하면 다른걸로 바껴도 정상적으로 작동하나, None이 아닌 다른 것으로 시작하면 안 바뀜
+      */
+      modifier = Modifier.weight(4f),
+      textAlign = TextAlign.Center
+    )
+    Button(
+      onClick = { onEditButtonClick(bookEntity) },
+      contentPadding = PaddingValues(0.dp),
+      modifier = Modifier
+        .padding(horizontal = 10.dp)
+        .weight(1f)
+    ) {
+      Text(text = "수정")
+    }
+  }
+}
+
+@Composable
 fun AddListDataPopup(
   expanded: Boolean,
   onDismissRequest: () -> Unit,
@@ -248,8 +289,8 @@ fun AddListDataPopup(
             modifier = modifier,
             verticalAlignment = Alignment.CenterVertically
           ) {
-            CustomTextDropdownMenu(countryDropdownMenuController)
-            CustomTextDropdownMenu(genreDropdownMenuController)
+            CustomTextDropdownMenu(countryDropdownMenuController, modifier.weight(1f))
+            CustomTextDropdownMenu(genreDropdownMenuController, modifier.weight(1f))
           }
           CustomTextField(
             descriptionFieldController,
@@ -264,46 +305,20 @@ fun AddListDataPopup(
     }
 }
 
-@Composable
-fun ListItem(
-  bookEntity: BookEntity,
-  isChecked: Boolean,
-  checkBoxListController: CheckBoxListController<BookEntity>,
-  onEditButtonClick: (BookEntity) -> Unit,
-  modifier: Modifier = Modifier
-) {
-  Row(
-    horizontalArrangement = Arrangement.SpaceBetween,
-    modifier = modifier.fillMaxSize(),
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    Checkbox(
-      checked = isChecked,
-      onCheckedChange = { checkBoxListController.onCheckedChange(bookEntity) },
-    )
-    Text(
-      text = bookEntity.title,
-      /*
-      FIXME : TextDecoration이 처음에 None이 아닌 다른 것으로 설정된 후에는 정상적으로 바뀌지 않는 버그
-      None에서 시작하면 다른걸로 바껴도 정상적으로 작동하나, None이 아닌 다른 것으로 시작하면 안 바뀜
-      */
-      modifier = Modifier.weight(4f),
-      textAlign = TextAlign.Center
-    )
-    Button(
-      onClick = { onEditButtonClick(bookEntity) },
-      contentPadding = PaddingValues(0.dp),
-      modifier = Modifier
-        .padding(horizontal = 10.dp)
-        .weight(1f)
-    ) {
-      Text(text = "수정")
-    }
-  }
-}
-
 @Preview
 @Composable
 fun Preview() {
-
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(10.dp),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    CustomTextDropdownMenu(CustomDropdownMenuController(
+      Country.NONE,
+      Country.values().toList()
+    ))
+    CustomTextDropdownMenu(CustomDropdownMenuController(
+      Genre.NONE,
+      Genre.values().toList()
+    ))
+  }
 }
