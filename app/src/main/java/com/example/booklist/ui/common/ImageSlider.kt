@@ -1,34 +1,51 @@
 package com.example.booklist.ui.common
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Scale
-import com.example.booklist.model.entity.BookEntity
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.calculateCurrentOffsetForPage
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun ImageSlider(modifier: Modifier = Modifier, sliderList: List<String> = listOf()) {
-  val pagerState = rememberPagerState(initialPage = 1)
+fun <T> ImageSlider(
+  modifier: Modifier = Modifier,
+  imageList: List<String> = listOf(),
+  itemList: List<T> = listOf(),
+  onItemClicked: (T) -> Unit
+) {
+  val pagerState = rememberPagerState(initialPage = 0)
+  LaunchedEffect(key1 = pagerState.currentPage) { // 자동 스크롤
+    launch {
+      delay(2000)
+      with(pagerState) {
+        val target =
+          if (imageList.isEmpty()) (currentPage + 1) % imageList.size else 0
+        animateScrollToPage(page = target)
+      }
+    }
+  }
   HorizontalPager(
-    count = sliderList.size, state = pagerState,
+    count = imageList.size, state = pagerState,
     contentPadding = PaddingValues(horizontal = 150.dp),
     verticalAlignment = Alignment.CenterVertically,
     modifier = modifier
@@ -58,13 +75,17 @@ fun ImageSlider(modifier: Modifier = Modifier, sliderList: List<String> = listOf
     ) {
       AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
-          .data(sliderList[page])
+          .data(imageList[page])
           .crossfade(true)
           .scale(Scale.FILL)
           .build(),
         contentDescription = null,
-        modifier = Modifier
-          /*.offset {
+        modifier = Modifier.clickable(
+          interactionSource = MutableInteractionSource(),
+          indication = null,
+        ) { onItemClicked(itemList[page]) }
+        /*modifier = Modifier
+          .offset {
             // Calculate the offset for the current page from the
             // scroll position
             val pageOffset =

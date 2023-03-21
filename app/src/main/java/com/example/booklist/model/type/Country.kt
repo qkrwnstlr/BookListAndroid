@@ -7,6 +7,9 @@ enum class Country {
   JAPAN {
     override fun toString(): String = "JAPAN"
   },
+  NONE {
+    override fun toString(): String = ""
+  },
   ETC {
     override fun toString(): String = "ETC"
   };
@@ -16,6 +19,7 @@ enum class Country {
       return when (string) {
         "KOREA" -> KOREA
         "JAPAN" -> JAPAN
+        "" -> NONE
         else -> ETC
       }
     }

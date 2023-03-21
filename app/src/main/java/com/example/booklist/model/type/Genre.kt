@@ -22,6 +22,9 @@ enum class Genre {
   NOVEL {
     override fun toString(): String = "NOVEL"
   },
+  NONE {
+    override fun toString(): String = ""
+  },
   ETC {
     override fun toString(): String = "ETC"
   };
@@ -36,6 +39,7 @@ enum class Genre {
         "SELF_HELP" -> SELF_HELP
         "ESSAY" -> ESSAY
         "NOVEL" -> NOVEL
+        "" -> NONE
         else -> ETC
       }
   }
