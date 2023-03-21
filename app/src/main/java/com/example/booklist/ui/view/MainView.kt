@@ -5,7 +5,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -65,19 +67,24 @@ fun MainView(modifier: Modifier = Modifier) {
       ) {
         val (recommendLayout, searchLayout) = createRefs() // 제약에 사용할 참조 생성
         RecommendLayout(
-          modifier = Modifier.constrainAs(recommendLayout) {
-            width = Dimension.fillToConstraints
-            centerHorizontallyTo(parent)
-            top.linkTo(parent.top)
-          }.padding(horizontal = 10.dp)
+          modifier = Modifier
+            .constrainAs(recommendLayout) {
+              width = Dimension.fillToConstraints
+              height = Dimension.wrapContent
+              centerHorizontallyTo(parent)
+              top.linkTo(parent.top)
+              bottom.linkTo(searchLayout.top)
+            }
+            .padding(horizontal = 10.dp)
         )
         SearchLayout(
-          modifier = Modifier.constrainAs(searchLayout) {
-            width = Dimension.fillToConstraints
-            centerHorizontallyTo(parent)
-            top.linkTo(recommendLayout.bottom)
-            bottom.linkTo(parent.bottom)
-          }
+          modifier = Modifier
+            .constrainAs(searchLayout) {
+              width = Dimension.fillToConstraints
+              height = Dimension.wrapContent
+              centerHorizontallyTo(parent)
+              bottom.linkTo(parent.bottom)
+            }
         )
       }
       AddListDataPopup(
@@ -108,6 +115,7 @@ fun RecommendLayout(modifier: Modifier = Modifier) {
 @Composable
 fun SearchLayout(modifier: Modifier = Modifier) {
   val viewModel = viewModel<MainViewModel>()
+  val searchListScrollState = rememberScrollState()
   Column(
     modifier, verticalArrangement = Arrangement.spacedBy(10.dp)
   ) {
@@ -121,7 +129,12 @@ fun SearchLayout(modifier: Modifier = Modifier) {
     SearchTop(
       viewModel.checkBoxListController,
     )
-    LazyColumn { // 임마는 왜 자꾸 호출됨...?
+    LazyColumn(
+      modifier = Modifier
+        .verticalScroll(searchListScrollState)
+        .height(250.dp)
+    ) { // 임마는 왜 자꾸 호출됨...?
+      println("MainView : ${viewModel.searchList}")
       items(items = viewModel.searchList) { bookEntity ->
         println("MainView : SearchLayout ${bookEntity.id}, ${bookEntity.title}, ${bookEntity.country}")
         ListItem(
@@ -216,7 +229,6 @@ fun ListItem(
   onEditButtonClick: (BookEntity) -> Unit,
   modifier: Modifier = Modifier
 ) {
-  println("MainView : ListItem ${bookEntity.id}, ${bookEntity.title}")
   Row(
     horizontalArrangement = Arrangement.SpaceBetween,
     modifier = modifier.fillMaxSize(),
@@ -305,20 +317,17 @@ fun AddListDataPopup(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun Preview() {
-  Row(
-    horizontalArrangement = Arrangement.spacedBy(10.dp),
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    CustomTextDropdownMenu(CustomDropdownMenuController(
-      Country.NONE,
-      Country.values().toList()
-    ))
-    CustomTextDropdownMenu(CustomDropdownMenuController(
-      Genre.NONE,
-      Genre.values().toList()
-    ))
+  val viewModel = viewModel<MainViewModel>()
+  Scaffold {
+    ImageSlider(
+      modifier = Modifier.padding(it),
+      imageList = viewModel.recommendImageList,
+      itemList = viewModel.recommendList,
+      onItemClicked = viewModel::showDetail
+    )
   }
 }

@@ -3,6 +3,7 @@ package com.example.booklist.ui.common
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
@@ -46,9 +47,10 @@ fun <T> ImageSlider(
   }
   HorizontalPager(
     count = imageList.size, state = pagerState,
-    contentPadding = PaddingValues(horizontal = 150.dp),
-    verticalAlignment = Alignment.CenterVertically,
+    contentPadding = PaddingValues(horizontal = 100.dp),
+    verticalAlignment = Alignment.Top,
     modifier = modifier
+      .wrapContentHeight()
   ) { page ->
     Card(
       backgroundColor = Color.Transparent,

@@ -52,11 +52,10 @@ class MainViewModel : ViewModel() {
     }
   }
 
-  private val _searchList = mutableStateListOf<BookEntity>()
-  val searchList: List<BookEntity> = _recommendList
+  val searchList = mutableStateListOf<BookEntity>()
 
-  val searchTitleTextFieldController = CustomTextFieldController(::updateSearchList)
-  val searchWriterTextFieldController = CustomTextFieldController(::updateSearchList)
+  val searchTitleTextFieldController = CustomTextFieldController()
+  val searchWriterTextFieldController = CustomTextFieldController()
   var searchPriceValue by mutableStateOf<Int>(0)
 
   private val _isCheckedList = mutableStateMapOf<BookEntity, Boolean>()
@@ -80,30 +79,31 @@ class MainViewModel : ViewModel() {
       genre = searchGenreDropdownMenuController.currentValue,
       price = searchPriceValue,
     )
+    println("MainViewModel : updateSearchList ${findBookRequestDTO.title}")
     viewModelScope.launch {
       val newSearchList = _bookService.getBookList(findBookRequestDTO.toMap())
-      _searchList.clear()
+      searchList.clear()
       if (newSearchList.isSuccessful && newSearchList.body() != null) {
         newSearchList.body()!!.forEach {
-          _searchList.add(BookEntity.fromDTO(it))
+          searchList.add(BookEntity.fromDTO(it))
         }
-        println("MainViewModel(viewModelScope) : ${_searchList.size}")
+        println("MainViewModel(viewModelScope) : ${searchList.size}")
       }
     }
   }
 
   fun onSearchButtonClicked() {
-
+    updateSearchList()
   }
 
   fun onEditButtonClicked(bookEntity: BookEntity) {
 
   }
 
-  val addTitleTextFieldController = CustomTextFieldController(::updateSearchList)
-  val addWriterTextFieldController = CustomTextFieldController(::updateSearchList)
+  val addTitleTextFieldController = CustomTextFieldController()
+  val addWriterTextFieldController = CustomTextFieldController()
   var addPriceValue by mutableStateOf<Int>(0)
-  val addDescriptionTextFieldController = CustomTextFieldController(::updateSearchList)
+  val addDescriptionTextFieldController = CustomTextFieldController()
 
   val addCountryDropdownMenuController = CustomDropdownMenuController(
     Country.NONE,
@@ -118,6 +118,8 @@ class MainViewModel : ViewModel() {
   fun onIsAddBookPopupExpendedChanged() {
     isAddListDataPopupExpended = !isAddListDataPopupExpended
     addTitleTextFieldController.clearText()
+    addWriterTextFieldController.clearText()
+    addDescriptionTextFieldController.clearText()
   }
 
   fun onAddBookButtonClicked() {

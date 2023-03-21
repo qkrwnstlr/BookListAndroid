@@ -4,7 +4,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,9 +17,10 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(
-  customTextFieldController: CustomTextFieldController = CustomTextFieldController(),
+  customTextFieldController: CustomTextFieldController,
   leadingIcon: @Composable (() -> Unit)? = null
 ) {
+  println("CustomTexField : $customTextFieldController")
   BasicTextField(
     value = customTextFieldController.text,
     onValueChange = customTextFieldController::onTextChange,
@@ -46,14 +46,14 @@ fun CustomTextField(
 }
 
 class CustomTextFieldController(private val onTextChangeCallback: () -> Unit = {}) {
-  private var _text by mutableStateOf("")
-  val text = _text
+  var text by mutableStateOf("")
   fun onTextChange(value: String, callback: () -> Unit = onTextChangeCallback) {
-    _text = value
+    text = value
+    println("CustomTexField : $text, $value")
     callback()
   }
 
   fun clearText() {
-    _text = ""
+    text = ""
   }
 }
