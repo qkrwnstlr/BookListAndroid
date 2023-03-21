@@ -7,9 +7,9 @@ import retrofit2.http.*
 import java.util.*
 
 interface BookService {
-  @FormUrlEncoded
+  @JvmSuppressWildcards
   @GET("book")
-  suspend fun getBookList(@FieldMap param: Map<String, Any>): Response<List<BookEntity>>
+  suspend fun getBookList(@QueryMap param: Map<String, Any>): Response<List<BookEntity>>
 
   @POST("book/add")
   suspend fun addBook(@Body body: AddBookRequestDTO): Response<BookEntity>
