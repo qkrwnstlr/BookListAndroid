@@ -39,7 +39,7 @@ fun <T> ImageSlider(
       delay(2000)
       with(pagerState) {
         val target =
-          if (imageList.isEmpty()) (currentPage + 1) % imageList.size else 0
+          if (imageList.isNotEmpty()) (currentPage + 1) % imageList.size else 0
         animateScrollToPage(page = target)
       }
     }
