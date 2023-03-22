@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -21,8 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.booklist.model.entity.BookEntity
 import com.example.booklist.model.type.Country
@@ -34,12 +31,15 @@ import com.example.booklist.ui.viewmodel.MainViewModel
 @Composable
 fun MainView(modifier: Modifier = Modifier) {
   val viewModel = viewModel<MainViewModel>()
-  viewModel.updateRecommendList()
-  viewModel.updateSearchList()
   Scaffold(
     topBar = {
       TopAppBar(
         title = { Text("Book List") },
+        actions = {
+          IconButton(onClick = viewModel::onRefreshButtonClicked) {
+            Icon(Icons.Rounded.Refresh, "Refresh Btn")
+          }
+        }
       )
     },
     floatingActionButton = {
@@ -56,11 +56,31 @@ fun MainView(modifier: Modifier = Modifier) {
     }
   ) {
     val focusManger = LocalFocusManager.current
-    Box(modifier = Modifier.clickable(
-      interactionSource = MutableInteractionSource(),
-      indication = null
-    ) { focusManger.clearFocus() }) {
-      ConstraintLayout(
+    val mainViewScrollState = rememberScrollState()
+    Box(modifier = Modifier
+      .imePadding()
+      .clickable(
+        interactionSource = MutableInteractionSource(),
+        indication = null
+      ) { focusManger.clearFocus() }) {
+      LazyColumn(modifier.padding(it)) {
+        item {
+          RecommendLayout()
+        }
+        item {
+          SearchLayout()
+        }
+        items(items = viewModel.searchList) { bookEntity ->
+          println("MainView : SearchLayout ${bookEntity.id}, ${bookEntity.title}, ${bookEntity.country}")
+          ListItem(
+            bookEntity,
+            viewModel.isCheckedList[bookEntity] ?: false,
+            viewModel.checkBoxListController,
+            viewModel::onDetailButtonClicked
+          )
+        }
+      }
+      /*ConstraintLayout(
         modifier
           .fillMaxSize()
           .padding(it)
@@ -70,7 +90,7 @@ fun MainView(modifier: Modifier = Modifier) {
           modifier = Modifier
             .constrainAs(recommendLayout) {
               width = Dimension.fillToConstraints
-              height = Dimension.wrapContent
+              height = Dimension.percent(0.3f)
               centerHorizontallyTo(parent)
               top.linkTo(parent.top)
               bottom.linkTo(searchLayout.top)
@@ -81,23 +101,26 @@ fun MainView(modifier: Modifier = Modifier) {
           modifier = Modifier
             .constrainAs(searchLayout) {
               width = Dimension.fillToConstraints
-              height = Dimension.wrapContent
+              height = Dimension.percent(0.7f)
               centerHorizontallyTo(parent)
               bottom.linkTo(parent.bottom)
             }
         )
-      }
-      AddListDataPopup(
+      }*/
+      AddBookPopup(
         expanded = viewModel.isAddListDataPopupExpended,
         onDismissRequest = viewModel::onIsAddBookPopupExpendedChanged,
         onAddButtonClicked = viewModel::onAddBookButtonClicked,
         titleFieldController = viewModel.addTitleTextFieldController,
         writerFieldController = viewModel.addWriterTextFieldController,
+        priceFieldController = viewModel.addPriceTextFieldController,
         countryDropdownMenuController = viewModel.addCountryDropdownMenuController,
         genreDropdownMenuController = viewModel.addGenreDropdownMenuController,
         descriptionFieldController = viewModel.addDescriptionTextFieldController
       )
     }
+    viewModel.updateRecommendList()
+    viewModel.updateSearchList()
   }
 }
 
@@ -108,43 +131,28 @@ fun RecommendLayout(modifier: Modifier = Modifier) {
     modifier = modifier,
     imageList = viewModel.recommendImageList,
     itemList = viewModel.recommendList,
-    onItemClicked = viewModel::showDetail
+    onItemClicked = viewModel::onDetailButtonClicked
   )
 }
 
 @Composable
 fun SearchLayout(modifier: Modifier = Modifier) {
   val viewModel = viewModel<MainViewModel>()
-  val searchListScrollState = rememberScrollState()
   Column(
     modifier, verticalArrangement = Arrangement.spacedBy(10.dp)
   ) {
     SearchHead(
       viewModel.searchTitleTextFieldController,
       viewModel.searchWriterTextFieldController,
+      viewModel.searchPriceTextFieldController,
       viewModel.searchCountryDropdownMenuController,
       viewModel.searchGenreDropdownMenuController,
       viewModel::onSearchButtonClicked,
+      viewModel::onDeleteButtonClicked
     )
     SearchTop(
       viewModel.checkBoxListController,
     )
-    LazyColumn(
-      modifier = Modifier
-        .verticalScroll(searchListScrollState)
-        .height(250.dp)
-    ) { // 임마는 왜 자꾸 호출됨...?
-      println("MainView : ${viewModel.searchList}")
-      items(items = viewModel.searchList) { bookEntity ->
-        println("MainView : SearchLayout ${bookEntity.id}, ${bookEntity.title}, ${bookEntity.country}")
-        ListItem(
-          bookEntity,
-          viewModel.isCheckedList[bookEntity] ?: false,
-          viewModel.checkBoxListController,
-          viewModel::onEditButtonClicked
-        )
-      }
-    }
   }
 }
 
@@ -152,9 +160,11 @@ fun SearchLayout(modifier: Modifier = Modifier) {
 fun SearchHead(
   titleFieldController: CustomTextFieldController,
   writerFieldController: CustomTextFieldController,
+  priceFieldController: CustomTextFieldController,
   countryDropdownMenuController: CustomDropdownMenuController<Country>,
   genreDropdownMenuController: CustomDropdownMenuController<Genre>,
   onSearchButtonClicked: () -> Unit,
+  onDeleteButtonClicked: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -167,6 +177,9 @@ fun SearchHead(
     }
     CustomTextField(writerFieldController) {
       Icon(Icons.Rounded.Person, "Person Icon")
+    }
+    CustomTextField(priceFieldController) {
+      Icon(Icons.Rounded.Money, "Money Icon")
     }
     Row(
       horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -182,6 +195,16 @@ fun SearchHead(
         Icon(
           imageVector = Icons.Rounded.Search,
           contentDescription = "Search Btn",
+          tint = Color.Gray
+        )
+      }
+      IconButton(
+        onClick = onDeleteButtonClicked,
+        modifier = Modifier
+      ) {
+        Icon(
+          imageVector = Icons.Rounded.Delete,
+          contentDescription = "Delete Btn",
           tint = Color.Gray
         )
       }
@@ -226,7 +249,7 @@ fun ListItem(
   bookEntity: BookEntity,
   isChecked: Boolean,
   checkBoxListController: CheckBoxListController<BookEntity>,
-  onEditButtonClick: (BookEntity) -> Unit,
+  onDetailButtonClick: (BookEntity) -> Unit,
   modifier: Modifier = Modifier
 ) {
   Row(
@@ -248,24 +271,25 @@ fun ListItem(
       textAlign = TextAlign.Center
     )
     Button(
-      onClick = { onEditButtonClick(bookEntity) },
+      onClick = { onDetailButtonClick(bookEntity) },
       contentPadding = PaddingValues(0.dp),
       modifier = Modifier
         .padding(horizontal = 10.dp)
         .weight(1f)
     ) {
-      Text(text = "수정")
+      Text(text = "상세")
     }
   }
 }
 
 @Composable
-fun AddListDataPopup(
+fun AddBookPopup(
   expanded: Boolean,
   onDismissRequest: () -> Unit,
   onAddButtonClicked: () -> Unit,
   titleFieldController: CustomTextFieldController,
   writerFieldController: CustomTextFieldController,
+  priceFieldController: CustomTextFieldController,
   countryDropdownMenuController: CustomDropdownMenuController<Country>,
   genreDropdownMenuController: CustomDropdownMenuController<Genre>,
   descriptionFieldController: CustomTextFieldController,
@@ -296,6 +320,9 @@ fun AddListDataPopup(
           CustomTextField(
             writerFieldController,
           ) { Icon(Icons.Rounded.Person, "Person Icon") }
+          CustomTextField(
+            priceFieldController,
+          ) { Icon(Icons.Rounded.Money, "Money Icon") }
           Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = modifier,
@@ -327,7 +354,7 @@ fun Preview() {
       modifier = Modifier.padding(it),
       imageList = viewModel.recommendImageList,
       itemList = viewModel.recommendList,
-      onItemClicked = viewModel::showDetail
+      onItemClicked = viewModel::onDetailButtonClicked
     )
   }
 }

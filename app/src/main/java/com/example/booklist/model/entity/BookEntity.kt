@@ -1,5 +1,6 @@
 package com.example.booklist.model.entity
 
+import android.os.Parcelable
 import com.example.booklist.model.dto.FindBookResponseDTO
 import com.example.booklist.model.type.Country
 import com.example.booklist.model.type.Genre

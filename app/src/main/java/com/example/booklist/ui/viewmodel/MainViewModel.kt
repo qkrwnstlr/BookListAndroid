@@ -1,6 +1,8 @@
 package com.example.booklist.ui.viewmodel
 
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.booklist.data.repository.RetrofitAPI
@@ -20,18 +22,16 @@ import retrofit2.Response
 class MainViewModel : ViewModel() {
   private val _bookService by lazy { RetrofitAPI.retrofitService(BookService::class.java) }
 
-  private val _recommendList = mutableStateListOf<BookEntity>()
-  val recommendList: List<BookEntity> = _recommendList
-  private val _recommendImageList = mutableStateListOf<String>()
-  val recommendImageList: List<String> = _recommendImageList
+  val recommendList = mutableStateListOf<BookEntity>()
+  val recommendImageList = mutableStateListOf<String>()
 
   fun updateRecommendList() {
     val findBookRequestDTO = FindBookRequestDTO(
       title = "",
       writer = "",
-      country = Country.NONE,
-      genre = Genre.NONE,
-      price = Int.MAX_VALUE,
+      country = Country.ALL,
+      genre = Genre.ALL,
+      price = 0,
     )
     viewModelScope.launch {
       val newSearchList: Response<List<FindBookResponseDTO>>
@@ -40,14 +40,15 @@ class MainViewModel : ViewModel() {
       } catch (e: Exception) {
         throw Exception("MainViewModel(viewModelScope) : updateRecommendList $e")
       }
-      _recommendList.clear()
+      recommendList.clear()
+      recommendImageList.clear()
       if (newSearchList.isSuccessful && newSearchList.body() != null) {
         newSearchList.body()!!.forEach {
-          _recommendList.add(BookEntity.fromDTO(it))
+          recommendList.add(BookEntity.fromDTO(it))
         }
-        for (i in 0 until _recommendList.size) _recommendImageList.add("https://picsum.photos/1200/1800")
+        for (i in 0 until recommendList.size) recommendImageList.add("https://picsum.photos/1200/1800")
 //        _recommendImageList.addAll(newSearchList.body()!!.image)
-        println("MainViewModel(viewModelScope) : ${_recommendList.size}")
+        println("MainViewModel(viewModelScope) : ${recommendList.size}")
       }
     }
   }
@@ -56,18 +57,19 @@ class MainViewModel : ViewModel() {
 
   val searchTitleTextFieldController = CustomTextFieldController()
   val searchWriterTextFieldController = CustomTextFieldController()
-  var searchPriceValue by mutableStateOf<Int>(0)
+  val searchPriceTextFieldController =
+    CustomTextFieldController(KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
 
   private val _isCheckedList = mutableStateMapOf<BookEntity, Boolean>()
   val checkBoxListController by lazy { CheckBoxListController(searchList, _isCheckedList) }
   val isCheckedList: Map<BookEntity, Boolean> = _isCheckedList
 
   val searchCountryDropdownMenuController = CustomDropdownMenuController(
-    Country.NONE,
+    Country.ALL,
     Country.values().toList()
   )
   val searchGenreDropdownMenuController = CustomDropdownMenuController(
-    Genre.NONE,
+    Genre.ALL,
     Genre.values().toList()
   )
 
@@ -77,7 +79,7 @@ class MainViewModel : ViewModel() {
       writer = searchWriterTextFieldController.text,
       country = searchCountryDropdownMenuController.currentValue,
       genre = searchGenreDropdownMenuController.currentValue,
-      price = searchPriceValue,
+      price = searchPriceTextFieldController.text.toIntOrNull() ?: 0,
     )
     println("MainViewModel : updateSearchList ${findBookRequestDTO.title}")
     viewModelScope.launch {
@@ -92,6 +94,15 @@ class MainViewModel : ViewModel() {
     }
   }
 
+  fun onRefreshButtonClicked() {
+    searchCountryDropdownMenuController.currentValue = Country.ALL
+    searchGenreDropdownMenuController.currentValue = Genre.ALL
+    searchTitleTextFieldController.clearText()
+    searchWriterTextFieldController.clearText()
+    updateRecommendList()
+    updateSearchList()
+  }
+
   fun onSearchButtonClicked() {
     updateSearchList()
   }
@@ -102,15 +113,16 @@ class MainViewModel : ViewModel() {
 
   val addTitleTextFieldController = CustomTextFieldController()
   val addWriterTextFieldController = CustomTextFieldController()
-  var addPriceValue by mutableStateOf<Int>(0)
-  val addDescriptionTextFieldController = CustomTextFieldController()
+  val addPriceTextFieldController =
+    CustomTextFieldController(KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+  val addDescriptionTextFieldController = CustomTextFieldController(maxLine = 3)
 
   val addCountryDropdownMenuController = CustomDropdownMenuController(
-    Country.NONE,
+    Country.ALL,
     Country.values().toList()
   )
   val addGenreDropdownMenuController = CustomDropdownMenuController(
-    Genre.NONE,
+    Genre.ALL,
     Genre.values().toList()
   )
 
@@ -119,6 +131,7 @@ class MainViewModel : ViewModel() {
     isAddListDataPopupExpended = !isAddListDataPopupExpended
     addTitleTextFieldController.clearText()
     addWriterTextFieldController.clearText()
+    addPriceTextFieldController.clearText()
     addDescriptionTextFieldController.clearText()
   }
 
@@ -128,17 +141,32 @@ class MainViewModel : ViewModel() {
       writer = addWriterTextFieldController.text,
       country = addCountryDropdownMenuController.currentValue,
       genre = addGenreDropdownMenuController.currentValue,
-      price = addPriceValue,
+      price = addPriceTextFieldController.text.toIntOrNull() ?: 0,
       description = addDescriptionTextFieldController.text,
     )
     onIsAddBookPopupExpendedChanged()
     viewModelScope.launch {
       _bookService.addBook(addBookRequestDTO)
       updateSearchList()
+      updateRecommendList()
     }
   }
 
-  fun showDetail(bookEntity: BookEntity) {
+  fun onDeleteButtonClicked() {
+    viewModelScope.launch {
+      _isCheckedList.forEach {
+        try {
+          if (it.value) _bookService.deleteBook(it.key.id)
+        } catch (e: Exception) {
+          println("MainViewModel : onDeleteButtonClicked $e")
+        }
+      }
+      updateRecommendList()
+      updateSearchList()
+    }
+  }
+
+  fun onDetailButtonClicked(bookEntity: BookEntity) {
     // TODO : 상세보기 페이지로 이동
   }
 }

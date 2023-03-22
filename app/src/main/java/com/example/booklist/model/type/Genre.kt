@@ -1,6 +1,9 @@
 package com.example.booklist.model.type
 
 enum class Genre {
+  ALL {
+    override fun toString(): String = "ALL"
+  },
   COMIC {
     override fun toString(): String = "COMIC"
   },
@@ -22,9 +25,6 @@ enum class Genre {
   NOVEL {
     override fun toString(): String = "NOVEL"
   },
-  NONE {
-    override fun toString(): String = ""
-  },
   ETC {
     override fun toString(): String = "ETC"
   };
@@ -32,6 +32,7 @@ enum class Genre {
   companion object {
     fun fromString(string: String): Genre =
       when (string) {
+        "ALL" -> ALL
         "COMIC" -> COMIC
         "SCIENCE" -> SCIENCE
         "HOBBY" -> HOBBY
@@ -39,7 +40,6 @@ enum class Genre {
         "SELF_HELP" -> SELF_HELP
         "ESSAY" -> ESSAY
         "NOVEL" -> NOVEL
-        "" -> NONE
         else -> ETC
       }
   }
