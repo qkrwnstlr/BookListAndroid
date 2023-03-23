@@ -114,6 +114,18 @@ class MainViewModel : ViewModel() {
     updateSearchList()
   }
 
+  val menuCountryDropdownMenuController = CustomDropdownMenuController(
+    Country.ALL,
+    Country.values().toList(),
+    ::onMenuButtonClicked
+  )
+
+  fun onMenuButtonClicked() {
+    searchCountryDropdownMenuController.currentValue =
+      menuCountryDropdownMenuController.currentValue
+    updateSearchList()
+  }
+
   val addTitleTextFieldController = CustomTextFieldController()
   val addWriterTextFieldController = CustomTextFieldController()
   val addPriceTextFieldController =
@@ -129,9 +141,9 @@ class MainViewModel : ViewModel() {
     Genre.values().toList()
   )
 
-  var isAddListDataPopupExpended by mutableStateOf(false)
+  var isAddBookPopupExpended by mutableStateOf(false)
   fun onIsAddBookPopupExpendedChanged() {
-    isAddListDataPopupExpended = !isAddListDataPopupExpended
+    isAddBookPopupExpended = !isAddBookPopupExpended
     addCountryDropdownMenuController.currentValue = Country.ALL
     addGenreDropdownMenuController.currentValue = Genre.ALL
     addTitleTextFieldController.clearText()

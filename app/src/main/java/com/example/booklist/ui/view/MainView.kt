@@ -33,7 +33,15 @@ fun MainView(modifier: Modifier = Modifier) {
   if (!viewModel.isDetailViewExpected) Scaffold(
     topBar = {
       TopAppBar(
-        title = { Text("Book List") },
+        title = { Text("Book List${if (viewModel.menuCountryDropdownMenuController.currentValue != Country.ALL) " > " + viewModel.menuCountryDropdownMenuController.currentValue.toString() else ""}") },
+        navigationIcon = {
+          IconButton(onClick = {}) {
+            CustomIconDropDownMenu(
+              viewModel.menuCountryDropdownMenuController,
+              Icons.Rounded.Menu
+            )
+          }
+        },
         actions = {
           IconButton(onClick = viewModel::onRefreshButtonClicked) {
             Icon(Icons.Rounded.Refresh, "Refresh Btn")
@@ -106,7 +114,7 @@ fun MainView(modifier: Modifier = Modifier) {
         )
       }*/
       AddBookPopup(
-        expanded = viewModel.isAddListDataPopupExpended,
+        expanded = viewModel.isAddBookPopupExpended,
         onDismissRequest = viewModel::onIsAddBookPopupExpendedChanged,
         onAddButtonClicked = viewModel::onAddBookButtonClicked,
         titleFieldController = viewModel.addTitleTextFieldController,
@@ -316,6 +324,7 @@ fun AddBookPopup(
             .padding(20.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+          Text("Add Book", fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
           CustomTextField(
             titleFieldController,
           ) { Icon(Icons.Rounded.Title, "Title Icon") }

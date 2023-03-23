@@ -22,6 +22,7 @@ import com.example.booklist.model.type.Genre
 import com.example.booklist.ui.viewmodel.DetailViewModel
 import androidx.compose.material.Card
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Scale
@@ -172,6 +173,7 @@ fun EditBookPopup(
             .padding(20.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+          Text("Edit Book", fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
           CustomTextField(
             titleFieldController,
           ) { Icon(Icons.Rounded.Title, "Title Icon") }

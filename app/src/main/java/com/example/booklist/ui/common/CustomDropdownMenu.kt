@@ -12,11 +12,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierInfo
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+
+@Composable
+fun <T> CustomIconDropDownMenu(
+  controller: CustomDropdownMenuController<T>,
+  icon: ImageVector
+) {
+  Box {
+    IconButton(onClick = controller::onShowRequest) {
+      Icon(
+        icon,
+        "Search Btn"
+      )
+    }
+    CustomDropdownMenu(controller)
+  }
+}
 
 @Composable
 fun <T> CustomTextDropdownMenu(
@@ -74,17 +90,19 @@ fun <T> CustomDropdownMenu(
 }
 
 class CustomDropdownMenuController<T>(
-  var initvalue: T,
-  var dropdownMenuItemList: List<T>
+  initValue: T,
+  var dropdownMenuItemList: List<T>,
+  val onDismissRequestCallBack: () -> Unit = {}
 ) {
   var expanded by mutableStateOf<Boolean>(false)
-  var currentValue by mutableStateOf<T>(initvalue)
+  var currentValue by mutableStateOf<T>(initValue)
   fun onShowRequest() {
     expanded = true
   }
 
   fun onDismissRequest() {
     expanded = false
+    onDismissRequestCallBack()
   }
 
   fun onDropdownMenClicked(value: T) {
