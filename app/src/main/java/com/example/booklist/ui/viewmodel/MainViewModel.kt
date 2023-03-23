@@ -26,29 +26,35 @@ class MainViewModel : ViewModel() {
   val recommendImageList = mutableStateListOf<String>()
 
   fun updateRecommendList() {
-    val findBookRequestDTO = FindBookRequestDTO(
-      title = "",
-      writer = "",
-      country = Country.ALL,
-      genre = Genre.ALL,
-      price = 0,
-    )
     viewModelScope.launch {
-      val newSearchList: Response<List<FindBookResponseDTO>>
+      val newRecommendList: Response<List<FindBookResponseDTO>>
       try {
-        newSearchList = _bookService.getBookList(findBookRequestDTO.toMap())
+        newRecommendList = _bookService.getBook()
       } catch (e: Exception) {
         throw Exception("MainViewModel(viewModelScope) : updateRecommendList $e")
       }
       recommendList.clear()
       recommendImageList.clear()
-      if (newSearchList.isSuccessful && newSearchList.body() != null) {
-        newSearchList.body()!!.forEach {
+      if (newRecommendList.isSuccessful && newRecommendList.body() != null) {
+        newRecommendList.body()!!.forEach {
           recommendList.add(BookEntity.fromDTO(it))
         }
-        for (i in 0 until recommendList.size) recommendImageList.add("https://picsum.photos/1200/1800")
+        for (i in 0 until recommendList.size) recommendImageList.add("https://picsum.photos/id/${recommendList[i].id * 30}/1200/1800")
 //        _recommendImageList.addAll(newSearchList.body()!!.image)
         println("MainViewModel(viewModelScope) : ${recommendList.size}")
+      }
+    }
+  }
+
+  fun initSearchList() {
+    viewModelScope.launch {
+      val newSearchList = _bookService.getBook()
+      searchList.clear()
+      if (newSearchList.isSuccessful && newSearchList.body() != null) {
+        newSearchList.body()!!.forEach {
+          searchList.add(BookEntity.fromDTO(it))
+        }
+        println("MainViewModel(viewModelScope) : ${searchList.size}")
       }
     }
   }
@@ -73,7 +79,7 @@ class MainViewModel : ViewModel() {
     Genre.values().toList()
   )
 
-  fun updateSearchList() {
+  private fun updateSearchList() {
     val findBookRequestDTO = FindBookRequestDTO(
       title = searchTitleTextFieldController.text,
       writer = searchWriterTextFieldController.text,
@@ -99,16 +105,13 @@ class MainViewModel : ViewModel() {
     searchGenreDropdownMenuController.currentValue = Genre.ALL
     searchTitleTextFieldController.clearText()
     searchWriterTextFieldController.clearText()
+    searchPriceTextFieldController.clearText()
+    initSearchList()
     updateRecommendList()
-    updateSearchList()
   }
 
   fun onSearchButtonClicked() {
     updateSearchList()
-  }
-
-  fun onEditButtonClicked(bookEntity: BookEntity) {
-
   }
 
   val addTitleTextFieldController = CustomTextFieldController()
@@ -129,6 +132,8 @@ class MainViewModel : ViewModel() {
   var isAddListDataPopupExpended by mutableStateOf(false)
   fun onIsAddBookPopupExpendedChanged() {
     isAddListDataPopupExpended = !isAddListDataPopupExpended
+    addCountryDropdownMenuController.currentValue = Country.ALL
+    addGenreDropdownMenuController.currentValue = Genre.ALL
     addTitleTextFieldController.clearText()
     addWriterTextFieldController.clearText()
     addPriceTextFieldController.clearText()
@@ -147,8 +152,7 @@ class MainViewModel : ViewModel() {
     onIsAddBookPopupExpendedChanged()
     viewModelScope.launch {
       _bookService.addBook(addBookRequestDTO)
-      updateSearchList()
-      updateRecommendList()
+      onRefreshButtonClicked()
     }
   }
 
@@ -161,12 +165,19 @@ class MainViewModel : ViewModel() {
           println("MainViewModel : onDeleteButtonClicked $e")
         }
       }
-      updateRecommendList()
-      updateSearchList()
+      onRefreshButtonClicked()
     }
   }
 
+  val detailViewModel = DetailViewModel(BookEntity(0, "", "", Country.ALL, Genre.ALL, 0, ""))
+  var isDetailViewExpected by mutableStateOf(false)
   fun onDetailButtonClicked(bookEntity: BookEntity) {
-    // TODO : 상세보기 페이지로 이동
+    detailViewModel.bookEntity = bookEntity
+    isDetailViewExpected = true
+  }
+
+  fun onDetailButtonClose() {
+    onRefreshButtonClicked()
+    isDetailViewExpected = false
   }
 }

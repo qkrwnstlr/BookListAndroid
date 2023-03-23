@@ -5,7 +5,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -31,7 +30,7 @@ import com.example.booklist.ui.viewmodel.MainViewModel
 @Composable
 fun MainView(modifier: Modifier = Modifier) {
   val viewModel = viewModel<MainViewModel>()
-  Scaffold(
+  if (!viewModel.isDetailViewExpected) Scaffold(
     topBar = {
       TopAppBar(
         title = { Text("Book List") },
@@ -56,16 +55,15 @@ fun MainView(modifier: Modifier = Modifier) {
     }
   ) {
     val focusManger = LocalFocusManager.current
-    val mainViewScrollState = rememberScrollState()
     Box(modifier = Modifier
       .imePadding()
       .clickable(
         interactionSource = MutableInteractionSource(),
         indication = null
       ) { focusManger.clearFocus() }) {
-      LazyColumn(modifier.padding(it)) {
+      LazyColumn(modifier.padding(it), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
-          RecommendLayout()
+          RecommendLayout(modifier = Modifier.padding(10.dp))
         }
         item {
           SearchLayout()
@@ -120,8 +118,12 @@ fun MainView(modifier: Modifier = Modifier) {
       )
     }
     viewModel.updateRecommendList()
-    viewModel.updateSearchList()
+    viewModel.initSearchList()
   }
+  else DetailView(
+    viewModel = viewModel.detailViewModel,
+    onNavigatePop = viewModel::onDetailButtonClose
+  )
 }
 
 @Composable
@@ -227,13 +229,13 @@ fun SearchTop(
       onCheckedChange = { checkBoxListController.onAllCheckedChanged() },
     )
     Text(
-      text = "TODO",
+      text = "Title",
       modifier = Modifier.weight(4f),
       textAlign = TextAlign.Center,
       fontWeight = FontWeight.Bold
     )
     Text(
-      text = "Finish",
+      text = "Detail",
       modifier = Modifier
         .width(ButtonDefaults.MinWidth)
         .padding(horizontal = 10.dp)

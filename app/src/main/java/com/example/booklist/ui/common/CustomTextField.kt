@@ -55,9 +55,12 @@ fun CustomTextField(
 class CustomTextFieldController(
   val keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
   val maxLine: Int = 1,
-  private val initValue: String = "",
+  initValue: String = "",
   private val onTextChangeCallback: () -> Unit = {}
 ) {
+  init {
+    println("CustomTexFieldController is created : $initValue")
+  }
   var text by mutableStateOf(initValue)
   fun onTextChange(value: String, callback: () -> Unit = onTextChangeCallback) {
     text = value

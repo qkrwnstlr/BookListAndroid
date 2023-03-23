@@ -55,7 +55,7 @@ fun <T> ImageSlider(
     Card(
       backgroundColor = Color.Transparent,
       shape = RoundedCornerShape(10.dp),
-      elevation = 0.dp,
+      elevation = 5.dp,
       modifier = Modifier
         .graphicsLayer {
           val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
