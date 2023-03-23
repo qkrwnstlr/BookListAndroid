@@ -51,10 +51,12 @@ class DetailViewModel(_bookEntity: BookEntity) : ViewModel() {
   var isEditListDataPopupExpended by mutableStateOf(false)
   fun onIsEditBookPopupExpendedChanged() {
     isEditListDataPopupExpended = !isEditListDataPopupExpended
-    editTitleTextFieldController.clearText()
-    editWriterTextFieldController.clearText()
-    editPriceTextFieldController.clearText()
-    editDescriptionTextFieldController.clearText()
+    editTitleTextFieldController.text = bookEntity.title
+    editWriterTextFieldController.text = bookEntity.writer
+    editPriceTextFieldController.text = bookEntity.price.toString()
+    editDescriptionTextFieldController.text = bookEntity.description
+    editCountryDropdownMenuController.currentValue = bookEntity.country
+    editGenreDropdownMenuController.currentValue = bookEntity.genre
   }
 
   fun onEditBookButtonClicked() {

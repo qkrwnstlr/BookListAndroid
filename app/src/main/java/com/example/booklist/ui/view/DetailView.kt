@@ -95,7 +95,7 @@ fun BookInfoLayout(modifier: Modifier = Modifier, bookEntity: BookEntity) {
     Card(
       backgroundColor = Color.Transparent,
       shape = RoundedCornerShape(10.dp),
-      elevation = 10.dp,
+      elevation = 5.dp,
     ) {
       AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)

@@ -33,7 +33,7 @@ fun MainView(modifier: Modifier = Modifier) {
   if (!viewModel.isDetailViewExpected) Scaffold(
     topBar = {
       TopAppBar(
-        title = { Text("Book List${if (viewModel.menuCountryDropdownMenuController.currentValue != Country.ALL) " > " + viewModel.menuCountryDropdownMenuController.currentValue.toString() else ""}") },
+        title = { Text("Main View${if (viewModel.menuCountryDropdownMenuController.currentValue != Country.ALL) " > " + viewModel.menuCountryDropdownMenuController.currentValue.toString() else ""}") },
         navigationIcon = {
           IconButton(onClick = {}) {
             CustomIconDropDownMenu(
